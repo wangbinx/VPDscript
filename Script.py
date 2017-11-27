@@ -95,9 +95,6 @@ def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
 	txt=''.join(value_txt)
 	new = txt+dsc[int(num)][1][1]
 	data=new,dsc[int(num)][1][1]
-	write_to_DEC_DSC(data,value,Dscfile,Decfile,switch)
-	
-def write_to_DEC_DSC(data,value,Dscfile,Decfile,switch):
 	try:
 		with open(Dscfile,'r') as dscfile:
 			dsc_read=dscfile.read()
