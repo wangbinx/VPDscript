@@ -10,16 +10,17 @@ def parsertxt(filename):
 	with open(filename,'r') as inputfile:
 		value=inputfile.readlines()
 	for line in value:
-		list1=line.split('  ')
+		list1=line.split(' ')
 		list1 = [t for t in list1 if t != ''] #remove ' '
 		c=''.join(list1[1:])
 		b=value_re.sub('',c)
-		if "|" in b:
-			a=b.split("|")
-			tmp=[list1[0],a[0],a[1]]
-		else:
-			tmp=[list1[0],b]
-		info.append(tmp)
+		if b:
+			if "|" in b:
+				a=b.split("|")
+				tmp=[list1[0],a[0],a[1]]
+			else:
+				tmp=[list1[0],b]
+			info.append(tmp)
 	return info
 
 def DEC_INF_test(txtfile,decfile,inffile):
@@ -73,6 +74,16 @@ def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
 		elif "Vpd" in dsc[int(num)][0]:
 			pass
 			print "VPD"
+		elif "FeatureFlag" in dsc[int(num)][0]:
+			for i in range(len(value)):
+				if len(value[i]) ==3:
+					if value[i][2] == 'TRUE' or value[i][2] == 'FALSE' or value[i][2] == 'True' or value[i][2] == 'False':
+						value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
+				else:
+					if switch == 1:
+						if len(value[i]) ==2:
+							if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
+								value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
 		else:
 			for i in range(len(value)):
 				if len(value[i]) ==3:
@@ -84,25 +95,29 @@ def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
 	txt=''.join(value_txt)
 	new = txt+dsc[int(num)][1][1]
 	data=new,dsc[int(num)][1][1]
-	write_DEC_DSC(data,value,Dscfile,Decfile,switch)
+	write_to_DEC_DSC(data,value,Dscfile,Decfile,switch)
 	
-def write_DEC_DSC(data,value,Dscfile,Decfile,switch):
+def write_to_DEC_DSC(data,value,Dscfile,Decfile,switch):
 	try:
-		with open(Dscfile,'r') as dsc:
-			dsc_read=dsc.read()
+		with open(Dscfile,'r') as dscfile:
+			dsc_read=dscfile.read()
 		with open(Dscfile,'w+') as new_dsc:
 			if data[1] in dsc_read:
 				dsc_read=dsc_read.replace(data[1],data[0])
 			new_dsc.write(dsc_read)
 		with open(Decfile,'a+') as dec:
 			dec.write('\n')
+			if "FeatureFlag" in dsc[int(num)][0]:
+				dec.write('[PcdsFeatureFlag]\n')
 			for i in range(len(value)):
 				if len(value[i]) == 3:
-					dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+					if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
+						dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
 				else:
 					if switch == 1:
 						if len(value[i]) == 2:
-							dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))  
+							if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
+								dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))  
 		print "PASS: Modify File Successful"
 	except Exception,e:
 		print "ERROR: Modify File Error"+str(e)
