@@ -1,6 +1,6 @@
   VOID*   {0x1, 0x2, 0x3} | {0x99}
-  VOID*   {10, 11, 12, 13, 14}
-  VOID*   {'X', 'Y', 'Z'}
+  VOID*   {10, 11, 12, 13, 14} |{15, 11, 12, 13, 15}
+  VOID*   {'X', 'Y', 'Z'} |{'A'+'B'}
   VOID*   {TRUE, FALSE, FALSE, TRUE}
   VOID*   {0x41, 0x42, 67, 68, 'E', 'F', TRUE, FALSE}
   VOID*   { UINT8(7), UINT16(8), UINT32(0x27), UINT64(0x1234567812345678) }
@@ -8,10 +8,10 @@
   VOID*   { GUID("11E13869-1896-4A07-8B21-D8B23DD2A2B4") }
   VOID*   { GUID({ 0x11e13869, 0x1896, 0x4a07, { 0x8b, 0x21, 0xd8, 0xb2, 0x3d, 0xd2, 0xa2, 0xb4 } }) }
   VOID*   { GUID(gEfiStructuredPcdPkgTokenSpaceGuid) }
-  VOID*   { DEVICE_PATH("PciRoot(0)/Pci(0,0)") }
   VOID*   {0,1,2,3,4,5,6,7,8,9}
   VOID*   {1,2,TRUE,FALSE,0x1,0x2,'A','AB',L"ABCD"}
   VOID*   {'X', 'Y', 'Z'}
+  VOID*   {L'X', L'Y', L'Z'}
   VOID*   {"ABCD","EFG","HIJKLMN","O","PQ","RST","UV","W","X","Y","Z"}
   VOID*   {L"ABCD",L"EFG",L"HIJKLMN",L"O",L"PQ",L"RST",L"UV",L"W",L"X",L"Y",L"Z"}
   VOID*   {'X',"ABCD",L"ABCD",L"HIJKLMN"}

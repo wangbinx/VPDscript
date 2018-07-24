@@ -10,7 +10,7 @@ def parsertxt(filename):
 	with open(filename,'r') as inputfile:
 		value=inputfile.readlines()
 	for line in value:
-		list1=line.split(' ')
+		list1=line.split('  ')
 		list1 = [t for t in list1 if t != ''] #remove ' '
 		c=''.join(list1[1:])
 		b=value_re.sub('',c)
@@ -29,15 +29,82 @@ def DEC_INF_test(txtfile,decfile,inffile):
 		with open(decfile,'a+') as dec:
 			dec.write('\n')
 			for i in range(len(value)):
-				dec.write('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+				dec.write('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
 		with open(inffile,'a+') as inf:
 			inf.write('\n')
 			for i in range(len(value)):
-				inf.write('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d\n'%i)
+				inf.write('gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d\n'%i)
 		print "Modify File Successful"
 	except Exception,e:
 		print "Modify File Error"+str(e)
 
+def write2inf(txtfile,inffile):
+	value=parsertxt(txtfile)
+	try:
+		with open(inffile,'a+') as inf:
+			inf.write('\n')
+			for i in range(len(value)):
+				inf.write('gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d\n'%i)
+		print "Modify File Successful"
+	except Exception,e:
+		print "Modify File Error"+str(e)
+
+def INF_test(txtfile,decfile,inffile,switch):
+	value=parsertxt(txtfile)
+	try:
+		with open(decfile,'a+') as dec:
+			dec.write('\n')
+			for i in range(len(value)):
+				dec.write('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+		with open(inffile,'a+') as inf:
+			inf.write('\n')
+			for i in range(len(value)):
+				if len(value[i]) ==3:
+					inf.write('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
+				else:
+					if switch == 1:
+						if len(value[i]) ==2:
+							inf.write('gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
+		print "Modify File Successful"
+	except Exception,e:
+		print "Modify File Error"+str(e)
+
+def FDF_test(txtfile,decfile,fdffile,switch):
+	value=parsertxt(txtfile)
+	try:
+		with open(decfile,'a+') as dec:
+			dec.write('\n')
+			for i in range(len(value)):
+				dec.write('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+		with open(fdffile,'a+') as inf:
+			inf.write('\n')
+			for i in range(len(value)):
+				if len(value[i]) ==3:
+					inf.write('SET gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d = %s\n'%(i,value[i][2]))
+				else:
+					if switch == 1:
+						if len(value[i]) ==2:
+							inf.write('SET gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d = %s\n'%(i,value[i][1]))
+		print "Modify File Successful"
+	except Exception,e:
+		print "Modify File Error"+str(e)
+	
+def PCD_test(txtfile,switch):
+	command=''
+	value=parsertxt(txtfile)
+	for i in range(len(value)):
+		if len(value[i]) ==3:
+			tmp=' --pcd gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d=H"%s"\n'%(i,value[i][2])
+			command += tmp
+		else:
+			if switch == 1:
+				if len(value[i]) ==2:
+					tmp=' --pcd gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d=H"%s"\n'%(i,value[i][1])
+					command += tmp
+	fo=open('command.txt','wb')
+	fo.write(command)
+	fo.close()
+	
 def parserdsc(filename):
 	section_re=re.compile('(\S+)]\n')
 	info_dict={};info_list=[]
@@ -56,7 +123,7 @@ def parserdsc(filename):
 		info_dict[i]=info_list[i]
 	return info_dict
 	
-def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
+def DSC_DEC_test(txtfile,Dscfile,Decfile,inffile,switch):
 	value=parsertxt(txtfile)
 	dsc=parserdsc(Dscfile)
 	value_txt=[]
@@ -69,29 +136,46 @@ def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
 		exit()
 	else:
 		if "Hii" in dsc[int(num)][0]:
-			pass
-			print "HII"
+			for i in range(len(value)):
+				if len(value[i]) ==3:
+					value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|L"JUSTFORTEST%d"|gTestHiiVarGuid|0x00|%s\n'%(i,i,value[i][2]))
+				else:
+					if switch == 1:
+						if len(value[i]) ==2:
+							value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|L"JUSTFORTEST%d"|gTestHiiVarGuid|0x00|%s\n'%(i,i,value[i][1]))
 		elif "Vpd" in dsc[int(num)][0]:
-			pass
-			print "VPD"
+			write2inf(txtfile,inffile)
+			for i in range(len(value)):
+				if len(value[i]) ==3:
+					if value[i][0] == 'VOID*':
+						value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|*|128|%s\n'%(i,value[i][2]))
+					else:
+						value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|*|%s\n'%(i,value[i][2]))
+				else:
+					if switch == 1:
+						if len(value[i]) ==2:
+							if value[i][0] == 'VOID*':
+								value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|*|128|%s\n'%(i,value[i][1]))
+							else:
+								value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|*|%s\n'%(i,value[i][1]))
 		elif "FeatureFlag" in dsc[int(num)][0]:
 			for i in range(len(value)):
 				if len(value[i]) ==3:
 					if value[i][2] == 'TRUE' or value[i][2] == 'FALSE' or value[i][2] == 'True' or value[i][2] == 'False':
-						value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
+						value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
 				else:
 					if switch == 1:
 						if len(value[i]) ==2:
 							if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
-								value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
+								value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
 		else:
 			for i in range(len(value)):
 				if len(value[i]) ==3:
-					value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
+					value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][2]))
 				else:
 					if switch == 1:
 						if len(value[i]) ==2:
-							value_txt.append('  gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
+							value_txt.append('  gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s\n'%(i,value[i][1]))
 	txt=''.join(value_txt)
 	new = txt+dsc[int(num)][1][1]
 	data=new,dsc[int(num)][1][1]
@@ -108,13 +192,12 @@ def DSC_DEC_test(txtfile,Dscfile,Decfile,switch):
 				dec.write('[PcdsFeatureFlag]\n')
 			for i in range(len(value)):
 				if len(value[i]) == 3:
-					if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
-						dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+						dec.write('gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))
+						
 				else:
 					if switch == 1:
 						if len(value[i]) == 2:
-							if value[i][1] == 'TRUE' or value[i][1] == 'FALSE' or value[i][1] == 'True' or value[i][1] == 'False':
-								dec.write('gEfiStructuredPcdPkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))  
+							dec.write('gEfiNt32PkgTokenSpaceGuid.JUSTFORTEST%d|%s|%s|0x%08x\n'%(i,value[i][1],value[i][0],(int('0x00010076',16)+i)))  
 		print "PASS: Modify File Successful"
 	except Exception,e:
 		print "ERROR: Modify File Error"+str(e)
@@ -128,17 +211,27 @@ def main():
 	if options.filename:
 		print '\n1: DEC test\n'
 		print '2: DSC test\n'
-		print '3: Quit\n'
+		print '3: INF test\n'
+		print '4: FDF test\n'
+		print '5: PCD test\n'
+		print '6: Quit\n'
 		x=raw_input('Input the number to run test:')
-		os.chdir("edk2-staging")
-		subprocess.check_call('git checkout TestPkg',shell=True)
+		path=os.path.join(root,'staging-origin','edk2')
+		os.chdir(path)
+		subprocess.check_call('git checkout Nt32Pkg/',shell=True)
 		os.chdir(root)
-		if int(x) == 3:
-			exit()
-		elif int(x) == 1:
+		if int(x) == 1:
 			DEC_INF_test(options.filename,dec,inf)
 		elif int(x) == 2:
-			DSC_DEC_test(options.filename,dsc,dec,switch=int(options.switch))
+			DSC_DEC_test(options.filename,dsc,dec,inf,switch=int(options.switch))
+		elif int(x) == 3:
+			INF_test(options.filename,dec,inf,switch=int(options.switch))
+		elif int(x) == 4:
+			FDF_test(options.filename,dec,fdf,switch=int(options.switch))
+		elif int(x) == 5:
+			PCD_test(options.filename,switch=int(options.switch))
+		elif int(x) == 6:
+			exit()
 		else:
 			print "!"*10+"ERROR: Input Error\n"+"!"*10
 		main()
@@ -146,7 +239,8 @@ def main():
 		print 'Error command, use -h for help'
 
 if __name__=='__main__':
-	dec=os.path.join(root,'edk2-staging','TestPkg','TestPkg.dec')
-	inf=os.path.join(root,'edk2-staging','TestPkg','Application','TestApp','TestApp.inf')
-	dsc=os.path.join(root,'edk2-staging','TestPkg','TestPkg.dsc')
+	dec=os.path.join(root,'staging-origin','edk2','Nt32Pkg','Nt32Pkg.dec')
+	inf=os.path.join(root,'staging-origin','edk2','Nt32Pkg','Application','TestApp','TestApp.inf')
+	dsc=os.path.join(root,'staging-origin','edk2','Nt32Pkg','Nt32Pkg.dsc')
+	fdf=os.path.join(root,'staging-origin','edk2','Nt32Pkg','Nt32Pkg.fdf')
 	main()
